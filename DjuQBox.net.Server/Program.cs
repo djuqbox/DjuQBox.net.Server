@@ -8,6 +8,10 @@ namespace DjuQBox.net.Server
 {
     class Program
     {
+        //git proxy
+        //https://stackoverflow.com/questions/44285651/set-proxy-for-microsoft-git-provider-in-visual-studio
+        //https://stackoverflow.com/a/52557561/8289048
+        //https://stackoverflow.com/a/14750116/8289048
         static void Main(string[] args)
         {
             Console.WriteLine("YouTube Data API: Search");
