@@ -27,6 +27,13 @@ namespace DjuQBox.net.Server
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
+
+
+            //download
+            //linux 
+            //youtube -dl -x -i --proxy "" --audio-format mp3 --prefer-ffmpeg  https://www.youtube.com/playlist?list=PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is
+            //windows 
+            //youtube-dl.exe -x -i --proxy "http://ACSCOURIER\\hatizefstrtiou:$perfect4@192.168.3.92:8080" --audio-format mp3 --prefer-ffmpeg  --ffmpeg-location "C:\DjQbox\youtube-dl\ffmpeg\bin" https://www.youtube.com/playlist?list=PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is
         }
 
         private async Task Run(String aQuery)
