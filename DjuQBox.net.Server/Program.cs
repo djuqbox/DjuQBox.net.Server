@@ -1,7 +1,9 @@
 ﻿using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
+using NYoutubeDL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace DjuQBox.net.Server
@@ -17,13 +19,29 @@ namespace DjuQBox.net.Server
             Console.WriteLine("YouTube Data API: Search");
             Console.WriteLine("========================");
 
-            String _q = Console.ReadLine();
-            if (_q != String.Empty)
-            {
-                new Program().Run(_q).Wait();
-            }
+            fYoutubeDL = new YoutubeDL();
+            fYoutubeDL.YoutubeDlPath = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
+            fYoutubeDL.StandardOutputEvent += (sender, output) => Console.WriteLine(output);
+            fYoutubeDL.StandardErrorEvent += (sender, errorOutput) => Console.WriteLine(errorOutput);
 
             
+            fYoutubeDL.Options.PostProcessingOptions.PreferFfmpeg = true;
+            fYoutubeDL.Options.PostProcessingOptions.FfmpegLocation = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
+            fYoutubeDL.Options.PostProcessingOptions.ExtractAudio = true;
+            fYoutubeDL.Options.PostProcessingOptions.AudioFormat = NYoutubeDL.Helpers.Enums.AudioFormat.mp3;
+
+            fYoutubeDL.Options.FilesystemOptions.Output = @"C:\DjQbox\mp3s\test.test";
+
+            String _q = Console.ReadLine();
+
+            DownloadVideo("https://www.youtube.com/watch?v=7WFk23_6yos");
+
+            //if (_q != String.Empty)
+            //{
+            //    new Program().Run(_q).Wait();
+            //}
+
+
 
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
@@ -34,6 +52,25 @@ namespace DjuQBox.net.Server
             //youtube -dl -x -i --proxy "" --audio-format mp3 --prefer-ffmpeg  https://www.youtube.com/playlist?list=PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is
             //windows 
             //youtube-dl.exe -x -i --proxy "http://ACSCOURIER\\hatizefstratiou:xxxxx@192.168.3.92:8080" --audio-format mp3 --prefer-ffmpeg  --ffmpeg-location "C:\DjQbox\youtube-dl\ffmpeg\bin" https://www.youtube.com/playlist?list=PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is
+            //https://sourceforge.net/projects/cntlm/
+            //http://cntlm.sourceforge.net/
+
+            //https://www.youtube.com/watch?v=7WFk23_6yos
+            
+        }
+
+        static YoutubeDL fYoutubeDL;
+
+        private static void DownloadVideo(string aVideoId)
+        {
+            fYoutubeDL.VideoUrl = "https://www.youtube.com/watch?v=7WFk23_6yos";
+            string commandToRun = fYoutubeDL.PrepareDownload();
+            Console.WriteLine(commandToRun);
+            //https://gitlab.com/BrianAllred/NYoutubeDL
+            //.\youtube-dl.exe -v -x -i --proxy "http://localhost:3128" --audio-format mp3 --prefer-ffmpeg  --ffmpeg-location "C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin" https://www.youtube.com/watch?v=7WFk23_6yos
+
+            
+            fYoutubeDL.Download();
         }
 
         private async Task Run(String aQuery)
