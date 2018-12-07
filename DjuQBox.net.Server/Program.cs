@@ -26,31 +26,28 @@ namespace DjuQBox.net.Server
         static void Main(string[] args)
         {
 
-            new Program().Run("test").Wait();
+            string aPlayList = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is"; //args[0]
+
+            PrepareYoutubeDL();
+
+            var djuQBoxPlayList = GetYoutubePlayListInfo(aPlayList);
+            
+            DownloadPlayList(djuQBoxPlayList);
+
+
+
+            //new Program().Run("test").Wait();
 
             Console.WriteLine("YouTube Data API: Search");
             Console.WriteLine("========================");
 
-            fYoutubeDL = new YoutubeDL();
-
-            fYoutubeDL.StandardOutputEvent += (sender, output) => Console.WriteLine(output);
-            fYoutubeDL.StandardErrorEvent += (sender, errorOutput) => Console.WriteLine(errorOutput);
-
-
-            fYoutubeDL.Options.PostProcessingOptions.PreferFfmpeg = true;
-
-            fYoutubeDL.Options.PostProcessingOptions.ExtractAudio = true;
-            fYoutubeDL.Options.PostProcessingOptions.AudioFormat = NYoutubeDL.Helpers.Enums.AudioFormat.mp3;
-
-            fYoutubeDL.Options.FilesystemOptions.Output = MP3_PATH;
-            fYoutubeDL.YoutubeDlPath = YOUTUBE_DL_PATH;
-            fYoutubeDL.Options.PostProcessingOptions.FfmpegLocation = FFMPEG_PATH;
+           
 
             String _q = Console.ReadLine();
 
             ///home/pi/hdd/mp3/DJuQBox
 
-            DownloadVideo("https://www.youtube.com/watch?v=7WFk23_6yos");
+            //DownloadVideo("https://www.youtube.com/watch?v=7WFk23_6yos");
 
             //if (_q != String.Empty)
             //{
@@ -63,7 +60,7 @@ namespace DjuQBox.net.Server
             Console.ReadKey();
 
             MPC.MpcWrapper mpcWrapper = new MPC.MpcWrapper(MPC_PATH);
-            string aPlayList = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is";
+            
             mpcWrapper.Update(true, Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH , aPlayList));
             mpcWrapper.PlaylistClear();
             mpcWrapper.PlaylistAddSong(Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
@@ -82,7 +79,116 @@ namespace DjuQBox.net.Server
 
         }
 
+        private static void PrepareYoutubeDL()
+        {
+            fYoutubeDL = new YoutubeDL();
+
+            fYoutubeDL.StandardOutputEvent += (sender, output) => Console.WriteLine(output);
+            fYoutubeDL.StandardErrorEvent += (sender, errorOutput) => Console.WriteLine(errorOutput);
+
+
+            fYoutubeDL.Options.PostProcessingOptions.PreferFfmpeg = true;
+
+            fYoutubeDL.Options.PostProcessingOptions.ExtractAudio = true;
+            fYoutubeDL.Options.PostProcessingOptions.AudioFormat = NYoutubeDL.Helpers.Enums.AudioFormat.mp3;
+
+            fYoutubeDL.Options.FilesystemOptions.Output = MP3_PATH;
+            fYoutubeDL.YoutubeDlPath = YOUTUBE_DL_PATH;
+            fYoutubeDL.Options.PostProcessingOptions.FfmpegLocation = FFMPEG_PATH;
+        }
+
+        private static void CreateFolder(DjuQBoxPlayList djuQBoxPlayList)
+        {
+            String _path = Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId);
+            if (Directory.Exists(_path))
+            {
+                //yparxei
+            }
+            else
+            {
+                Directory.CreateDirectory(_path);
+            }
+        }
+
+        private static void DownloadPlayList(DjuQBoxPlayList djuQBoxPlayList)
+        {
+            CreateFolder(djuQBoxPlayList);
+
+            fYoutubeDL.Options.FilesystemOptions.Output = Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId) ;
+
+            int ind = 1;
+            foreach (var item in djuQBoxPlayList.Videos)
+            {
+                fYoutubeDL.VideoUrl = "https://www.youtube.com/watch?v=" + item.VideoId;
+                fYoutubeDL.Options.FilesystemOptions.Output =
+                    Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId) + ind.ToString("n000") + "%(title)s-%(id)s.%(ext)s";
+                 
+                fYoutubeDL.Download();
+            }
+
+          
+
+            //string commandToRun = fYoutubeDL.PrepareDownload();
+            //Console.WriteLine(commandToRun);
+            //https://gitlab.com/BrianAllred/NYoutubeDL
+            //.\youtube-dl.exe -v -x -i --proxy "http://localhost:3128" --audio-format mp3 --prefer-ffmpeg  --ffmpeg-location "C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin" https://www.youtube.com/watch?v=7WFk23_6yos
+
+
+        
+
+        }
+
+        private static DjuQBoxPlayList GetYoutubePlayListInfo(string aPlayList)
+        {
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = GOOGLE_API_KEY,
+                ApplicationName = "DjuQBox.Net.Server"
+            });
+
+            var playlistSearch = youtubeService.Playlists.List("snippet,contentDetails");
+            playlistSearch.Id = aPlayList;
+            var playlist = playlistSearch.Execute();
+
+          
+
+            DjuQBoxPlayList list = new DjuQBoxPlayList();
+            list.PlaylistId = aPlayList;
+            list.Title = playlist.Items?[0].Snippet.Title;
+            var _th = playlist.Items?[0].Snippet.Thumbnails.High; //an kenh>???
+            list.Thumbnail = new Thumbnail()
+            {
+                Height = _th.Height,
+                Width = _th.Width,
+                Url = _th.Url,
+            };
+            list.SongCount = (int)playlist.Items?[0].ContentDetails?.ItemCount;
+
+            var listSearch = youtubeService.PlaylistItems.List("snippet");
+            listSearch.PlaylistId = aPlayList;
+            listSearch.MaxResults = 50; // max value!!!!
+
+            var nextPageToken = "";
+
+            while (nextPageToken != null)
+            {
+                listSearch.PageToken = nextPageToken;
+                var listSearchRes = listSearch.Execute();
+
+                foreach (var listItem in listSearchRes.Items)
+                {
+                    list.Videos.Add(new DjuQBoxSong(listItem.Snippet.Title, listItem.Snippet.ResourceId.VideoId, listItem.Snippet.Thumbnails?.High?.Url));                       
+                }
+
+                nextPageToken = listSearchRes.NextPageToken;
+            }
+
+
+            return list;
+        }
+
         static YoutubeDL fYoutubeDL;
+
         
 
         private static void DownloadVideo(string aVideoId)
