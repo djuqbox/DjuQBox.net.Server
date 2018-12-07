@@ -39,7 +39,7 @@ namespace DjuQBox.net.Server
 
             String _q = Console.ReadLine();
 
-            
+            ///home/pi/hdd/mp3/DJuQBox
 
             DownloadVideo("https://www.youtube.com/watch?v=7WFk23_6yos");
 
@@ -101,8 +101,12 @@ namespace DjuQBox.net.Server
 
             List<string> playListVideos = new List<string>();
 
+            var playlistSearch = youtubeService.Playlists.List("snippet");
+            playlistSearch.Id = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is";
+            var playlist = playlistSearch.Execute();
 
-            
+            String _playlistTitle = playlist.Items?[0].Snippet.Title;
+            String _playlistThumbUrl = playlist.Items?[0].Snippet.Thumbnails.High.Url;
 
             var nextPageToken = "";
 
@@ -113,7 +117,7 @@ namespace DjuQBox.net.Server
 
                 foreach (var listItem in listSearchRes.Items)
                 {
-                    playListVideos.Add(String.Format("{0} ({1})", listItem.Snippet.Title, listItem.Snippet.ResourceId.VideoId));
+                    playListVideos.Add(String.Format("{0} ({1}) url: {2}", listItem.Snippet.Title, listItem.Snippet.ResourceId.VideoId, listItem.Snippet.Thumbnails?.High?.Url));
                 }
 
                 nextPageToken = listSearchRes.NextPageToken;
