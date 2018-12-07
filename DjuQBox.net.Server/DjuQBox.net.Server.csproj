@@ -10,4 +10,8 @@
     <PackageReference Include="NYoutubeDL" Version="0.10.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DjuQBox.MPC\DjuQBox.MPC.csproj" />
+  </ItemGroup>
+
 </Project>

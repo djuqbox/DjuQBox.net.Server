@@ -4,6 +4,7 @@ using NYoutubeDL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace DjuQBox.net.Server
@@ -15,6 +16,8 @@ namespace DjuQBox.net.Server
         private const string YOUTUBE_DL_PATH = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
         private const string FFMPEG_PATH = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
         private const string GOOGLE_API_KEY = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c"; //TODO change
+        private const string MPC_PATH = @"C:\DjQbox\mpd\mpc-0.22\";
+        private const string MPD_LIBRARY_DJUQBOX_ROOT_PATH = @"DJuQBox";
 
         //git proxy
         //https://stackoverflow.com/questions/44285651/set-proxy-for-microsoft-git-provider-in-visual-studio
@@ -29,13 +32,13 @@ namespace DjuQBox.net.Server
             Console.WriteLine("========================");
 
             fYoutubeDL = new YoutubeDL();
-           
+
             fYoutubeDL.StandardOutputEvent += (sender, output) => Console.WriteLine(output);
             fYoutubeDL.StandardErrorEvent += (sender, errorOutput) => Console.WriteLine(errorOutput);
 
-            
+
             fYoutubeDL.Options.PostProcessingOptions.PreferFfmpeg = true;
-            
+
             fYoutubeDL.Options.PostProcessingOptions.ExtractAudio = true;
             fYoutubeDL.Options.PostProcessingOptions.AudioFormat = NYoutubeDL.Helpers.Enums.AudioFormat.mp3;
 
@@ -59,7 +62,12 @@ namespace DjuQBox.net.Server
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
 
-            
+            MPC.MpcWrapper mpcWrapper = new MPC.MpcWrapper(MPC_PATH);
+            string aPlayList = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is";
+            mpcWrapper.Update(true, Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH , aPlayList));
+            mpcWrapper.PlaylistClear();
+            mpcWrapper.PlaylistAddSong(Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
+            mpcWrapper.Play();
 
 
             //download
@@ -75,11 +83,12 @@ namespace DjuQBox.net.Server
         }
 
         static YoutubeDL fYoutubeDL;
+        
 
         private static void DownloadVideo(string aVideoId)
         {
             fYoutubeDL.VideoUrl = "https://www.youtube.com/watch?v=7WFk23_6yos";
-            
+
             //string commandToRun = fYoutubeDL.PrepareDownload();
             //Console.WriteLine(commandToRun);
             //https://gitlab.com/BrianAllred/NYoutubeDL
@@ -100,19 +109,20 @@ namespace DjuQBox.net.Server
             //var listSearch = youtubeService.PlaylistItems.List("id,contentDetails,snippet");
             var listSearch = youtubeService.PlaylistItems.List("snippet");
             listSearch.PlaylistId = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is";
-            
+
             //listSearch.Fields = "items(snippet(resourceId(videoId),publishedAt,title,thumbnails/default/url))";
             listSearch.MaxResults = 50; // max value!!!!
             //listSearch.PageToken
 
             List<string> playListVideos = new List<string>();
 
-            var playlistSearch = youtubeService.Playlists.List("snippet");
+            var playlistSearch = youtubeService.Playlists.List("snippet,contentDetails");
             playlistSearch.Id = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is";
             var playlist = playlistSearch.Execute();
 
             String _playlistTitle = playlist.Items?[0].Snippet.Title;
             String _playlistThumbUrl = playlist.Items?[0].Snippet.Thumbnails.High.Url;
+            int _playlistCount = (int)playlist.Items?[0].ContentDetails?.ItemCount;
 
             var nextPageToken = "";
 
