@@ -10,6 +10,12 @@ namespace DjuQBox.net.Server
 {
     class Program
     {
+        //TODO change to configurations
+        private const string MP3_PATH = @"C:\DjQbox\mp3s\test.test";
+        private const string YOUTUBE_DL_PATH = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
+        private const string FFMPEG_PATH = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
+        private const string GOOGLE_API_KEY = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c"; //TODO change
+
         //git proxy
         //https://stackoverflow.com/questions/44285651/set-proxy-for-microsoft-git-provider-in-visual-studio
         //https://stackoverflow.com/a/52557561/8289048
@@ -33,9 +39,9 @@ namespace DjuQBox.net.Server
             fYoutubeDL.Options.PostProcessingOptions.ExtractAudio = true;
             fYoutubeDL.Options.PostProcessingOptions.AudioFormat = NYoutubeDL.Helpers.Enums.AudioFormat.mp3;
 
-            fYoutubeDL.Options.FilesystemOptions.Output = @"C:\DjQbox\mp3s\test.test";
-            fYoutubeDL.YoutubeDlPath = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
-            fYoutubeDL.Options.PostProcessingOptions.FfmpegLocation = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
+            fYoutubeDL.Options.FilesystemOptions.Output = MP3_PATH;
+            fYoutubeDL.YoutubeDlPath = YOUTUBE_DL_PATH;
+            fYoutubeDL.Options.PostProcessingOptions.FfmpegLocation = FFMPEG_PATH;
 
             String _q = Console.ReadLine();
 
@@ -87,14 +93,14 @@ namespace DjuQBox.net.Server
         {
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                ApiKey = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c",
+                ApiKey = GOOGLE_API_KEY,
                 ApplicationName = this.GetType().ToString()
             });
 
             //var listSearch = youtubeService.PlaylistItems.List("id,contentDetails,snippet");
             var listSearch = youtubeService.PlaylistItems.List("snippet");
             listSearch.PlaylistId = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is";
-            //listSearch.Key = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c";
+            
             //listSearch.Fields = "items(snippet(resourceId(videoId),publishedAt,title,thumbnails/default/url))";
             listSearch.MaxResults = 50; // max value!!!!
             //listSearch.PageToken
