@@ -22,7 +22,7 @@ namespace DjuQBox.MPC
             arguments = mpcCommand.ToString() + " " + arguments;
             processStartInfo = new ProcessStartInfo
             {
-                FileName = MPC_PATH,
+                FileName = MPC_PATH + "mpc",
                 Arguments = arguments,
                 CreateNoWindow = true,
                 RedirectStandardError = true,

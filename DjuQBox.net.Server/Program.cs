@@ -12,7 +12,7 @@ namespace DjuQBox.net.Server
     class Program
     {
         //TODO change to configurations
-        private const string MP3_PATH = @"C:\DjQbox\mp3s\test.test";
+        private const string MP3_PATH = @"C:\DjQbox\mp3s\";
         private const string YOUTUBE_DL_PATH = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
         private const string FFMPEG_PATH = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
         private const string GOOGLE_API_KEY = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c"; //TODO change
@@ -34,7 +34,7 @@ namespace DjuQBox.net.Server
             
             DownloadPlayList(djuQBoxPlayList);
 
-
+            MpcPlay(aPlayList);
 
             //new Program().Run("test").Wait();
 
@@ -59,12 +59,7 @@ namespace DjuQBox.net.Server
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
 
-            MPC.MpcWrapper mpcWrapper = new MPC.MpcWrapper(MPC_PATH);
-            
-            mpcWrapper.Update(true, Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH , aPlayList));
-            mpcWrapper.PlaylistClear();
-            mpcWrapper.PlaylistAddSong(Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
-            mpcWrapper.Play();
+           
 
 
             //download
@@ -77,6 +72,17 @@ namespace DjuQBox.net.Server
 
             //https://www.youtube.com/watch?v=7WFk23_6yos
 
+        }
+
+
+        private static void MpcPlay(string aPlayList)
+        {
+            MPC.MpcWrapper mpcWrapper = new MPC.MpcWrapper(MPC_PATH);
+
+            mpcWrapper.Update(true, Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
+            mpcWrapper.PlaylistClear();
+            mpcWrapper.PlaylistAddSong(Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
+            mpcWrapper.Play();
         }
 
         private static void PrepareYoutubeDL()
@@ -99,7 +105,7 @@ namespace DjuQBox.net.Server
 
         private static void CreateFolder(DjuQBoxPlayList djuQBoxPlayList)
         {
-            String _path = Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId);
+            String _path = Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId);
             if (Directory.Exists(_path))
             {
                 //yparxei
@@ -114,15 +120,16 @@ namespace DjuQBox.net.Server
         {
             CreateFolder(djuQBoxPlayList);
 
-            fYoutubeDL.Options.FilesystemOptions.Output = Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId) ;
+            //fYoutubeDL.Options.FilesystemOptions.Output = Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId) ;
 
             int ind = 1;
             foreach (var item in djuQBoxPlayList.Videos)
             {
                 fYoutubeDL.VideoUrl = "https://www.youtube.com/watch?v=" + item.VideoId;
                 fYoutubeDL.Options.FilesystemOptions.Output =
-                    Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId) + ind.ToString("n000") + "%(title)s-%(id)s.%(ext)s";
-                 
+                    Path.Combine(MP3_PATH, MPD_LIBRARY_DJUQBOX_ROOT_PATH, djuQBoxPlayList.PlaylistId , ind++.ToString("000") + " - %(title)s-%(id)s.%(ext)s");
+                var s = fYoutubeDL.PrepareDownload();//giati janakatebasei to idio xwris auto!
+                
                 fYoutubeDL.Download();
             }
 
