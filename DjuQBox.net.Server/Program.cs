@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DjuQBox.net.Server
@@ -23,10 +24,21 @@ namespace DjuQBox.net.Server
         //https://stackoverflow.com/questions/44285651/set-proxy-for-microsoft-git-provider-in-visual-studio
         //https://stackoverflow.com/a/52557561/8289048
         //https://stackoverflow.com/a/14750116/8289048
+
+        //mpd as a service
+        //https://chriswarrick.com/blog/2013/09/01/mpd-on-windows/
+        //sc create mpd binPath= "C:\DjQbox\mpd\mpd.exe C:\DjQbox\mpd\data\mpd.conf" displayname="Music Player Daemon"
+
+
         static void Main(string[] args)
         {
 
             string aPlayList = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is"; //args[0]
+
+            Console.WriteLine("YouTube Data API: Search");
+            MpcPlay(aPlayList);
+            Console.ReadLine();
+            Console.ReadLine();
 
             PrepareYoutubeDL();
 
@@ -80,9 +92,14 @@ namespace DjuQBox.net.Server
             MPC.MpcWrapper mpcWrapper = new MPC.MpcWrapper(MPC_PATH);
 
             mpcWrapper.Update(true, Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
+            Thread.Sleep(1);
             mpcWrapper.PlaylistClear();
+            Thread.Sleep(1);
             mpcWrapper.PlaylistAddSong(Path.Combine(MPD_LIBRARY_DJUQBOX_ROOT_PATH, aPlayList));
+            Thread.Sleep(1);
             mpcWrapper.Play();
+            Thread.Sleep(1);
+
         }
 
         private static void PrepareYoutubeDL()
@@ -163,12 +180,8 @@ namespace DjuQBox.net.Server
             list.PlaylistId = aPlayList;
             list.Title = playlist.Items?[0].Snippet.Title;
             var _th = playlist.Items?[0].Snippet.Thumbnails.High; //an kenh>???
-            list.Thumbnail = new Thumbnail()
-            {
-                Height = _th.Height,
-                Width = _th.Width,
-                Url = _th.Url,
-            };
+            list.ThumbnailUrl = _th.Url;
+          
             list.SongCount = (int)playlist.Items?[0].ContentDetails?.ItemCount;
 
             var listSearch = youtubeService.PlaylistItems.List("snippet");
