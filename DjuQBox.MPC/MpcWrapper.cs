@@ -27,12 +27,14 @@ namespace DjuQBox.MPC
                 CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                UseShellExecute = false
+                // UseShellExecute = false
             };
 
 
             process = new Process { StartInfo = processStartInfo, EnableRaisingEvents = true };
             process.Exited += (sender, args) => KillStandardEventHandlers();
+            //process.OutputDataReceived += (sender, e) => Console.WriteLine(e.Data);
+
 
             //ThreadPool.QueueUserWorkItem(ydl.StandardOutput, ydl.stdOutputTokenSource.Token);
             //ThreadPool.QueueUserWorkItem(ydl.StandardError, ydl.stdErrorTokenSource.Token);
@@ -45,7 +47,10 @@ namespace DjuQBox.MPC
 
             process.Start();
             int ProcessID = process.Id;
+            //string s = this.process.StandardOutput.ReadLine();
             process.WaitForExit();
+
+            arguments = ""; // gia na trejei swsta h epomenh entolh
         }
 
         private void KillStandardEventHandlers()
@@ -53,19 +58,20 @@ namespace DjuQBox.MPC
             //throw new NotImplementedException();
         }
 
-        public void Play(int aPosition = 1)
+        public void Play(int aPosition = 0)
         {
-            mpcCommand = MpcCommand.play ;// "play";
+            mpcCommand = MpcCommand.play;// "play";
             arguments = aPosition.ToString();
             Do();
         }
 
-        public void Update(bool aWaitToFinish =false, String pathToUpdate = "")
+        public void Update(bool aWaitToFinish = false, String pathToUpdate = "")
         {
             mpcCommand = MpcCommand.update;
             arguments = aWaitToFinish ? " --wait " : "";
-            arguments =  pathToUpdate;
+            arguments = pathToUpdate;
             Do();
+
         }
 
         public void PlaylistClear()
@@ -85,7 +91,7 @@ namespace DjuQBox.MPC
 
     }
 
-    internal enum  MpcCommand
+    internal enum MpcCommand
     {
         add,
         clearerror,
