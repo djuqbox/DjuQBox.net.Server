@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,12 +14,12 @@ namespace DjuQBox.net.Server
     class Program
     {
         //TODO change to configurations
-        private const string MP3_PATH = @"C:\DjQbox\mp3s\";
-        private const string YOUTUBE_DL_PATH = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
-        private const string FFMPEG_PATH = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
-        private const string GOOGLE_API_KEY = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c"; //TODO change
-        private const string MPC_PATH = @"C:\DjQbox\mpd\mpc-0.22\";
-        private const string MPD_LIBRARY_DJUQBOX_ROOT_PATH = @"DJuQBox";
+        private static string MP3_PATH = @"C:\DjQbox\mp3s\";
+        private static string YOUTUBE_DL_PATH = @"C:\DjQbox\youtube-dl\youtube-dl.exe";
+        private static string FFMPEG_PATH = @"C:\DjQbox\youtube-dl\ffmpeg-20170425-b4330a0-win64-static\bin";
+        private static string GOOGLE_API_KEY = "AIzaSyBif1qH8cEFwWulm6KAPtwpDik4MvNBm5c"; //TODO change
+        private static string MPC_PATH = @"C:\DjQbox\mpd\mpc-0.22\";
+        private static string MPD_LIBRARY_DJUQBOX_ROOT_PATH = @"DJuQBox";
 
         //git proxy
         //https://stackoverflow.com/questions/44285651/set-proxy-for-microsoft-git-provider-in-visual-studio
@@ -33,20 +34,50 @@ namespace DjuQBox.net.Server
         static void Main(string[] args)
         {
 
-            string aPlayList = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is"; //args[0]
+            string aPlayList // = "PLSRDGXudTSm9PJfaMl2tq6I5DM--Gh8Is"; //args[0]
+            = "PLSRDGXudTSm8gle58o1uoCgV3f1GPs0Iy";
+            if (args.Length > 0)
+            {
+                aPlayList = args[0];
+            }
+            aPlayList = "PLSRDGXudTSm_KDUj_m20QuFIrklAlq60G";
 
-            Console.WriteLine("YouTube Data API: Search");
-            MpcPlay(aPlayList);
-            Console.ReadLine();
-            Console.ReadLine();
+            Console.WriteLine($"downloading playlist:" + aPlayList);
+
+            //Console.WriteLine("YouTube Data API: Search");
+            //MpcPlay(aPlayList);
+            //Console.ReadLine();
+            //Console.ReadLine();
+
+            //for raspi
+            //MP3_PATH = "/home/pi/hdd/mp3/";
+            //FFMPEG_PATH = MPC_PATH = String.Empty;
+            //YOUTUBE_DL_PATH = "/usr/local/bin/youtube-dl";
+
+
+            Console.WriteLine("PrepareYoutubeDL");
+            Console.WriteLine("========================");
 
             PrepareYoutubeDL();
 
+            Console.WriteLine("GetYoutubePlayListInfo");
+            Console.WriteLine("========================");
+
             var djuQBoxPlayList = GetYoutubePlayListInfo(aPlayList);
-            
+
+            Console.WriteLine("DownloadPlayList");
+            Console.WriteLine("========================");
+
             DownloadPlayList(djuQBoxPlayList);
 
+
+            Console.WriteLine("MpcPlay");
+            Console.WriteLine("========================");
+
             MpcPlay(aPlayList);
+
+            MPC.MpcWrapper mpcWrapper = new MPC.MpcWrapper(MPC_PATH);
+            mpcWrapper.PlaylistSave(djuQBoxPlayList.Title);
 
             //new Program().Run("test").Wait();
 
@@ -99,6 +130,7 @@ namespace DjuQBox.net.Server
             Thread.Sleep(1);
             mpcWrapper.Play();
             Thread.Sleep(1);
+            
 
         }
 
@@ -131,6 +163,9 @@ namespace DjuQBox.net.Server
             {
                 Directory.CreateDirectory(_path);
             }
+
+            WebClient wc = new WebClient();
+            wc.DownloadFile(djuQBoxPlayList.ThumbnailUrl, Path.Combine(_path, "thumbnail.jpg"));
         }
 
         private static void DownloadPlayList(DjuQBoxPlayList djuQBoxPlayList)
@@ -178,11 +213,12 @@ namespace DjuQBox.net.Server
 
             DjuQBoxPlayList list = new DjuQBoxPlayList();
             list.PlaylistId = aPlayList;
-            list.Title = playlist.Items?[0].Snippet.Title;
+            list.Title = playlist.Items?[0].Snippet.ChannelTitle + " - " + playlist.Items?[0].Snippet.Title;
             var _th = playlist.Items?[0].Snippet.Thumbnails.High; //an kenh>???
             list.ThumbnailUrl = _th.Url;
           
             list.SongCount = (int)playlist.Items?[0].ContentDetails?.ItemCount;
+          
 
             var listSearch = youtubeService.PlaylistItems.List("snippet");
             listSearch.PlaylistId = aPlayList;

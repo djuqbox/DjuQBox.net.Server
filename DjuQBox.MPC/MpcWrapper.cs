@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace DjuQBox.MPC
 {
@@ -87,8 +88,16 @@ namespace DjuQBox.MPC
             Do();
         }
 
+        public void PlaylistSave(string title)
+        {
+            mpcCommand = MpcCommand.save;
 
+            arguments = " \"" + title.Normalize() + "\"";
+            //Encoding.Convert()
+            // arguments = @" """ + Encoding.UTF8.GetString(Encoding.GetEncoding("windows-1253").GetBytes(title)) + "" ; //8elei katallhlo escaping
 
+            Do();
+        }
     }
 
     internal enum MpcCommand
